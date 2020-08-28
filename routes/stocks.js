@@ -8,50 +8,56 @@ var stocksService = require('../controllers/stocks');
 // Lo siento mucho, pero no he podido acabar con el proyecto, he tenido dificultades con sqlite3
 router.get("/:symbol/trades", async (req,res) => {
     var symbol = req.params.symbol;
-    var type = req.params.type;
-    var startDate = req.params.startDate;
-    var endDate = req.params.endDate;
-
+    var type = req.query.type;
+    
     var data = await stocksService.getStocksByTrades(symbol,type);
-
-    if(data.rows.length == 0){
+   
+    if(data == null){
         res.sendStatus(404);
     }else{
-
-        res.send(data.rows);
+        
+        res.send(data);
     }
 });
 
-router.get("/:symbol/prices",async (req,res) => {
+router.get("/:symbol/price",async (req,res) => {
     var symbol = req.params.symbol;
-    var startDate = req.params.startDate;
-    var endDate = req.params.endDate;
+    var startDate = req.query.start;
+    var endDate = req.query.end;
 
     var data = await stocksService.getStocksByPriceDiff(symbol);
 
     var unixStart = new Date(startDate).getTime() / 1000
     var unixEnd = new Date(endDate).getTime() / 1000
 
-    if(data.rows.length == 0){
+    if(data.length == 0){
         res.sendStatus(404);
     }else{
 
         var result = [];
 
-        for(var item of data.rows){
+        for(var item of data){
         
-            var unix = item.timestamp;
+            var unix = new Date(item.timestamp).getTime() / 1000;
     
             if(unixStart < unix && unix < unixEnd){
                 result.push(item);
             }
             
         }
-
         result.sort((a,b) => {return b.price - a.price})
 
-        res.send(result);
+        if(result.length == 0){
+            res.send({ message: 'There are no trades in the given date range' });
+            return;
+        }
+
+        var highest = result[0].price;
+        var lowest = result[result.length - 1].price
+
+        res.send({ symbol, highest, lowest});
     }
 });
+
 
 module.exports = router;

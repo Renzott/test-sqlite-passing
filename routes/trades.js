@@ -7,31 +7,29 @@ var tradeService = require('../controllers/trades');
 
 router.get('/', async (req, res) => {
     var data = await tradeService.getAllTrades();
-    res.send(data.rows);
+    var result = data.sort((a,b) => a.id - b.id);
+    res.send(result);
 });
 
 router.post('/', async (req,res) =>{
     var trade = req.body;
-    var data = await tradeService.addTrades(trade);
+    var result = await tradeService.addTrades(trade);
     if(result){
-        res.statusCode = 201;
-        var result = data.rows.sort((a,b) => a.id - b.id);
-        res.send(result);
+        res.sendStatus(201)
     }else{
         res.sendStatus(400);
     }
 });
 
-router.get('/trades/user/:userID', async (req,res) => {
+router.get('/users/:userID', async (req,res) => {
     var userID = req.params.userID;
     var data = await tradeService.getTradeByID(userID);
-    if(data.rows.length == 0){
-        res.sendStatus(404);
+    if(data.length != 0){
+        res.send(data);
     }else{
-        res.statusCode = 200;
-        var result = data.rows.sort((a,b) => a.id - b.id);
-        res.send(result);
+        res.sendStatus(404)
     }
+        
 })
 
 module.exports = router;

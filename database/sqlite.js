@@ -1,60 +1,52 @@
-var sqlite3 = require('sqlite3').verbose()
+var sqlite3 = require('sqlite3');
+var { open } = require('sqlite');
 
+/* Construccion de la base de datos */
+sqlite3.verbose();
 const DBSOURCE = "db.sqlite"
 
-let db = new sqlite3.Database(DBSOURCE, (err) => {
-    if (err) {
-        // Cannot open database
-        console.error(err.message)
-        throw err
-    } else {
-        console.log('Connect to SQLite Database')
+var database = new sqlite3.Database(DBSOURCE);
 
-        db.run(`     
-                create table user(
-                    id integer primary key,
-                    name TEXT
-                );          
-            `,
-            (err) => {
-                if (err) {
-                    console.log("La base de datos ya ha sido creada");
-                } else {
-                    db.run(`
-                    create table operation(
-                        id integer primary key,
-                        type TEXT,
-                        idUser integer,
-                        symbol TEXT,
-                        shares TEXT,
-                        price NUMERIC,
-                        timestamp TEXT,
-                        foreign key(idUser) references user(id)
-                    );`, (err2 => {
+database.serialize(()=>{
 
-                        if (!err2) {
-                            console.log("Base de datos creada");
-                        }
+    var userTable = `
+    create table user(
+		id integer,
+        name TEXT
+    )`;
 
-                    }))
+    var operationTable = `
+    create table operation(
+		id integer primary key,
+        type TEXT,
+		idUser integer,
+		symbol TEXT,
+		shares integer,
+		price decimal(10,2),
+		timestamp TEXT,
+		foreign key(idUser) references user(id)
+    )`;
 
+    database.run(userTable,(err) => {
+        if(err){
+            console.log("Ya existe una base de datos");
+        }
+    })
 
-                }
-            });
-    }
-});
+    database.run(operationTable,(err) => {
+        if(!err){
+            console.log("Base de datos creada")
+        }
+    })
 
-db.query = function (sql, params) {
-    var that = this;
-    return new Promise(function (resolve, reject) {
-      that.all(sql, params, function (error, rows) {
-        if (error)
-          reject(error);
-        else
-          resolve({ rows: rows });
-      });
-    });
-  };
+})
+
+database.close();
+
+/* SQLite Async */
+
+const openDB = open(DBSOURCE);
+
+module.exports = openDB;
 
 
-module.exports = db
