@@ -44,7 +44,7 @@ Al pasar por los test, daba error, porque segun el test, una **Operacion** debe 
 
 Para dejar claro, estaba usando hasMany, porque segun mi logica era **1:M**: 
 
-Operacion -> [Users]
+User -> [Operations]
 
 Ya que, segun como esta planteado el problema, da a entender que un Usuario va a tener varias Operaciones, pero, al imprimir de esta forma el resultado daba esto:
 
